@@ -1,0 +1,4 @@
+variables:
+  deploymentSlot: 'dev'
+  resourceGroupName: 'rg-infra_layer-eu-001'
+  appServiceName: 'dev-app'

@@ -1,0 +1,167 @@
+# azure-pipelines.yml
+
+trigger:
+  branches:
+    include:
+      - main
+      - release/*
+  paths:
+    include:
+      - 'terraform/*'
+      - 'tests/*'
+      - 'azure-pipelines.yml'
+
+variables:
+  - group: TerraformVariables # Store common variables
+  - name: BuildConfiguration
+    value: 'Release'
+
+stages:
+  - stage: BuildAndTest
+    displayName: Build and Unit Tests
+    jobs:
+      - job: Build
+        displayName: Terraform Build and Test
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: TerraformInstaller@0
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(terraformVersion)' # From TerraformVariables
+          - task: TerraformCLI@0
+            displayName: 'Terraform Format'
+            inputs:
+              command: 'fmt'
+              workingDirectory: 'terraform'
+              arguments: '-check'
+          - task: TerraformCLI@0
+            displayName: 'Terraform Validate'
+            inputs:
+              command: 'validate'
+              workingDirectory: 'terraform'
+          - script: |
+              go test -v ./tests/...
+            displayName: 'Run Terratest'
+          - task: TerraformCLI@0
+            displayName: 'Terraform Plan'
+            inputs:
+              command: 'plan'
+              workingDirectory: 'terraform'
+              environmentServiceName: '$(devServiceConnection)' # Azure service connection
+              commandOptions: '-out=plan.out'
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Terraform Plan'
+            inputs:
+              targetPath: 'terraform/plan.out'
+              artifact: 'terraformPlan'
+
+  - stage: SecurityAndQuality
+    displayName: Security and Quality Checks
+    dependsOn: BuildAndTest
+    jobs:
+      - job: SecurityScan
+        displayName: Terraform Security Scan
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: TerraformInstaller@0
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+          - script: |
+              tfsec ./terraform
+            displayName: 'Run tfsec'
+          - script: |
+              checkov -d ./terraform
+            displayName: 'Run Checkov'
+
+  - stage: DeployDev
+    displayName: Deploy to Dev
+    dependsOn: SecurityAndQuality
+    jobs:
+      - job: Deploy
+        displayName: Terraform Apply Dev
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: Dev
+        steps:
+          - task: TerraformInstaller@0
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Terraform Plan'
+            inputs:
+              artifact: 'terraformPlan'
+              path: '$(System.ArtifactsDirectory)/terraform'
+          - task: TerraformCLI@0
+            displayName: 'Terraform Apply Dev'
+            inputs:
+              command: 'apply'
+              workingDirectory: 'terraform'
+              environmentServiceName: '$(devServiceConnection)'
+              commandOptions: 'plan.out'
+
+  - stage: DeployQA
+    displayName: Deploy to QA
+    dependsOn: DeployDev
+    jobs:
+      - job: Deploy
+        displayName: Terraform Apply QA
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: QA
+        steps:
+          - task: TerraformInstaller@0
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Terraform Plan'
+            inputs:
+              artifact: 'terraformPlan'
+              path: '$(System.ArtifactsDirectory)/terraform'
+          - task: TerraformCLI@0
+            displayName: 'Terraform Apply QA'
+            inputs:
+              command: 'apply'
+              workingDirectory: 'terraform'
+              environmentServiceName: '$(qaServiceConnection)'
+              commandOptions: 'plan.out'
+
+  - stage: DeployProd
+    displayName: Deploy to Prod
+    dependsOn: DeployQA
+    jobs:
+      - job: Deploy
+        displayName: Terraform Apply Prod
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: Prod
+        strategy:
+          runOnce:
+            preDeploy:
+              steps:
+                - task: ManualValidation@0
+                  timeoutInMinutes: 1440
+                  inputs:
+                    notifyUsers: 'mailme2mahesh.08@gmail.com'
+                    instructions: 'Please validate the Terraform deployment to Prod.'
+        steps:
+          - task: TerraformInstaller@0
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Terraform Plan'
+            inputs:
+              artifact: 'terraformPlan'
+              path: '$(System.ArtifactsDirectory)/terraform'
+          - task: TerraformCLI@0
+            displayName: 'Terraform Apply Prod'
+            inputs:
+              command: 'apply'
+              workingDirectory: 'terraform'
+              environmentServiceName: '$(prodServiceConnection)'
+              commandOptions: 'plan.out'

@@ -1,0 +1,50 @@
+parameters:
+
+# environmentName: ''
+- name: environmentName
+    displayName: Environment
+    type: string
+    values:
+      - stg   
+      - dev
+      - qa
+      - pd
+ default: stg 
+artifactName: ''
+serviceConnection: ''
+approvalRequired: true
+
+#---
+jobs:
+  - job: Deploy
+    displayName: Deploy to ${{ parameters.environmentName }}
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: ${{ parameters.environmentName }} #Optional Azure devops environment
+    ${{ if and(parameters.approvalRequired, eq(parameters.environmentName, 'Pd')) }}:
+      strategy:
+        runOnce:
+          preDeploy:
+            steps:
+              - task: ManualValidation@0
+                timeoutInMinutes: 1440
+                inputs:
+                  notifyUsers: 'user@example.com' #add users or groups that need to approve
+                  instructions: 'Please validate the deployment to Prod'
+    steps:
+      - task: DownloadBuildArtifacts@1
+        displayName: 'Download Artifacts'
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: '${{ parameters.artifactName }}'
+          downloadPath: '$(System.ArtifactsDirectory)'
+      - task: AzureWebApp@1 # Example for Azure Web App deployment
+        displayName: 'Deploy to Azure Web App'
+        inputs:
+          azureSubscription: '${{ parameters.serviceConnection }}'
+          appName: '$(appServiceName)'
+          package: '$(System.ArtifactsDirectory)/**/drop/*.zip' # Adjust path based on your artifact
+          resourceGroupName: '$(resourceGroupName)'
+          deploymentMethod: 'auto'
+          slotName: '$(deploymentSlot)' #If using deployment slots.

@@ -1,0 +1,22 @@
+parameters:
+  - name: instance
+    type: string
+  - name: location
+    type: string
+  - name: environment
+    type: string
+  - name: applyTfPlan
+    type: boolean
+    default: false
+variables:
+  workingDirectory: infra-setup
+  TF_VAR_ENVIRONMENT: ${{ parameters.environment }}
+  TF_VAR_INSTANCE: ${{ parameters.instance }}
+  TF_LOG: INFO
+  applyTfPlan: ${{parameters.applyTfPlan}}
+  azdoEnvironment: approval-${{ parameters.environment }}
+  armServiceConnection: ${{ parameters.instance }}_${{ parameters.environment }}${{ parameters.location }}_asc
+  tfVariableFile: "./variables/${{ parameters.instance }}/${{ parameters.location }}/${{ parameters.environment }}.tfvars"
+  tfVariableCommonFile: "./variables/${{ parameters.instance }}/${{ parameters.location }}/common.tfvars"
+  tfBackendContainerName: infra-setup
+  tfBackendStateFileName: infra-setup

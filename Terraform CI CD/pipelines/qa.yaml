@@ -1,0 +1,4 @@
+variables:
+  deploymentSlot: 'qa'
+  resourceGroupName: 'rg-infra_layer-eu-001'
+  appServiceName: 'qa-app'

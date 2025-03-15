@@ -1,0 +1,4 @@
+variables:
+  deploymentSlot: 'prod'
+  resourceGroupName: 'rg-infra_layer-eu-001'
+  appServiceName: 'prod-app'
