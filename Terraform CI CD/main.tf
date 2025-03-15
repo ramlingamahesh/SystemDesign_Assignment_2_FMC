@@ -63,7 +63,7 @@ resource "azurerm_key_vault" "bedrock_Kv_keyvault" {
 /* # Azure DevOps Service Principal
 resource "azuread_service_principal" "ado_sp" {
   display_name = var.ado_service_principal_name
-}
+} 
 
 resource "azuread_service_principal_password" "ado_sp_password" {
   service_principal_id = azuread_service_principal.ado_sp.id
