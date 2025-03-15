@@ -1,46 +1,37 @@
 
 
-Design a CI/CD pipeline that includes: Automated builds and unit testing.
-Security checks and quality gates.Multi-environment deployments (e.g., Dev, QA, Prod). 
+# Design a CI/CD pipeline that includes: Automated builds and unit testing.Security checks and quality gates.Multi-environment deployments (e.g., Dev, QA, Prod). 
 
-Provide diagrams and documentation outlining the architecture.
+# Provide diagrams and documentation outlining the architecture.
 
 
 
 # Stage 0: Install Required Tools In this stage, we'll ensure that all essential tools like JDK, 
 # Stage 1: Install Required Tools & Project Dependencies In this stage, we'll install the required tools like JDK,
-            Node.js, and Maven, and also install project-specific dependencies using npm or Maven.
-# Stage 2: Execute Test Cases In this stage, we'll run automated test cases to validate the 
-			functionality of the code.			
+            # Node.js, and Maven, and also install project-specific dependencies using npm or Maven.
+# Stage 2: Execute Test Cases In this stage, we'll run automated test cases to validate the functionality of the code.			
 
-# Stage 3: Perform Security Scans In this stage, we'll perform security scans on the project
- files and Docker images.
+# Stage 3: Perform Security Scans In this stage, we'll perform security scans on the project files and Docker images.
  
-# Stage 4: Code Quality Analysis In this stage, we'll evaluate the code quality using static analysis 
-tools like SonarQube.
+# Stage 4: Code Quality Analysis In this stage, we'll evaluate the code quality using static analysis tools like SonarQube.
 
-# Stage 5: Build Application Artifact This stage involves compiling and packaging the application into 
-an executable artifact.
+# Stage 5: Build Application Artifact This stage involves compiling and packaging the application into an executable artifact.
 
 # Stage 6: Publish Artifact to Nexus In this stage, we'll upload the artifact to Nexus for version control.
 
 # Stage 7: Build Docker Image This stage creates a Docker image for containerized deployment.
 
-# Stage 8: Scan Docker Image for Security Vulnerabilities This stage checks the Docker image for security 
-			vulnerabilities using Trivy.
+# Stage 8: Scan Docker Image for Security Vulnerabilities This stage checks the Docker image for security vulnerabilities using Trivy.
 			
 # Stage 9: Push Docker Image to Docker Hub In this stage, the Docker image is pushed to Docker Hub for distribution.
 
-# Stage 10: Update Kubernetes Manifests In this stage, Kubernetes manifest files are updated to reference the
-			new Docker image.
+# Stage 10: Update Kubernetes Manifests In this stage, Kubernetes manifest files are updated to reference the new Docker image.
 			
-# Stage 11: Deploy Application to Kubernetes Cluster This stage deploys the application to a Kubernetes cluster
-			for orchestration.
+# Stage 11: Deploy Application to Kubernetes Cluster This stage deploys the application to a Kubernetes cluster for orchestration.
 			
-# Stage 12: Verify Deployment This stage confirms the successful deployment of the application.
+# Stage 12: Verify Deployment This stage confirms the successful deployment of the application. Cicd pipeline.
 
 
-Cicd pipeline
 
 # Stage 0: Install Required Tools In this stage, we'll ensure that all essential tools like JDK, 
 Node.js, and Maven are set up on the build agent.
